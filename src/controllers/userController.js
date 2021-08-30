@@ -360,7 +360,46 @@ const auth = async (req, res) => {
     return res.status(code).send(resData);
   }
 };
-
+const getAccount = async (req, res) => {
+  /* 	#swagger.tags = ['User']
+      #swagger.description = 'Get Account'
+      #swagger.responses[201] = {
+        description: 'User successfully added.',
+        schema: { 
+          "status": "success",
+          "code": 200,
+          "message": "",
+          "data": { 
+            "first_name": 'Jhon',
+            "last_name": 'Doe',
+            "email": 'jhon@valuebound.com',
+            "role": 'admin', 
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiSmhvbiBEb2UiLCJpYXQiOjE2Mjg0OTQ5NzksImV4cCI6MTYyODY2Nzc3OSwiaXNzIjoidmItY21zIn0.wdyX_wXWABr1BIw_7FzZKgowhixX8EXVN4ZojvzsaIU",
+          },
+          "error": {}
+        }
+      }
+  */
+  let code, message, data;
+  const authorizationHeaader = req.headers.authorization.split(" ")[1];
+  try {
+    code = 200;
+    const user = await userModel
+      .findOne({ token: authorizationHeaader })
+      .exec();
+    const resData = customResponse({ code, data: user });
+    return res.status(code).send(resData);
+  } catch (error) {
+    code = 500;
+    message = "Internal server error";
+    const resData = customResponse({
+      code,
+      message,
+      err: error,
+    });
+    return res.status(code).send(resData);
+  }
+};
 module.exports = {
   getUserList,
   getUserDeatil,
@@ -368,4 +407,5 @@ module.exports = {
   updateUser,
   deleteUser,
   auth,
+  getAccount,
 };
