@@ -1,7 +1,8 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { addUserSchema } = require("../schema/userSchema");
+const { addUserSchema, loginSchema } = require("../schema/userSchema");
 const { customResponse, customPagination } = require("../utility/helper");
 
 const userModel = require("../models/user");
@@ -309,7 +310,9 @@ const auth = async (req, res) => {
       }
   */
   let code, message, data;
-  const { error } = addUserSchema.validate(req.body);
+  console.log("Hello");
+  const { error } = loginSchema.validate(req.body);
+
   if (error) {
     code = 422;
     message = "Invalid request data";
@@ -320,6 +323,7 @@ const auth = async (req, res) => {
     });
     return res.status(code).send(resData);
   }
+
   try {
     code = 200;
     const payload = { ...req.body };
@@ -330,22 +334,38 @@ const auth = async (req, res) => {
     const secret = process.env.JWT_SECRET;
     const token = jwt.sign(payload, secret, options);
     const reqBody = { token, ...req.body };
-
     const user = await userModel.findOne({ email: req.body.email }).exec();
+    const encryptedPw = await bcrypt.hash(req.body.password, 10);
     if (!user) {
-      code = 201;
-
-      data = new userModel(reqBody);
-      await data.save();
+      code = 404;
+      message = "Invalid request data";
+      const resData = customResponse({
+        code,
+        message,
+      });
+      return res.status(code).send(resData);
     } else {
-      code = 200;
-
-      data = await userModel.findOneAndUpdate(
-        { email: req.body.email },
-        { ...reqBody },
-        { new: true }
+      const userEntry = await userModel.findOne({ email: req.body.email });
+      const doesPasswordMatch = await bcrypt.compare(
+        req.body.password,
+        userEntry.password
       );
-      await data.save();
+      if (doesPasswordMatch) {
+        code = 200;
+        data = await userModel.findOneAndUpdate(
+          { email: req.body.email },
+          { ...reqBody, password: encryptedPw },
+          { new: true }
+        );
+        await data.save();
+      } else {
+        code = 422;
+        message = "Invalid request data";
+        data = customResponse({
+          code,
+          message,
+        });
+      }
     }
     const resData = customResponse({ code, data });
     return res.status(code).send(resData);

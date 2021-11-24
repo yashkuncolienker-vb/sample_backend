@@ -1,4 +1,4 @@
-# Valuebound CMS Backend
+# Valuebound ERP Backend
 
 ## Introduction
 
@@ -6,7 +6,7 @@
 
 > git clone repo_url
 
-> cd vb_cms_backend
+> cd vb_erp_backend
 
 > copy .env.sample .env
 
