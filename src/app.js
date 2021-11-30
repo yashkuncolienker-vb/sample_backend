@@ -4,6 +4,7 @@ const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const { connectToDb } = require("./utility/db");
 const constants = require("./utility/constant");
+const cookieParser = require("cookie-parser");
 
 const router = require("./routes");
 const app = express();
@@ -17,6 +18,7 @@ app.use(
   })
 );
 app.use(cors(constants.CORS_OPTIONS));
+app.use(cookieParser());
 app.use(router);
 app.use(
   "/",
