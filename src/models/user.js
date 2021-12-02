@@ -21,6 +21,15 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
+      enum: [
+        "user",
+        "approver",
+        "leadership",
+        "hr_admin",
+        "finance_admin",
+        "pms_admin",
+        "super_admin",
+      ],
       required: true,
     },
     token: {

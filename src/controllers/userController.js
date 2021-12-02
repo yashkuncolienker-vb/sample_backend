@@ -77,7 +77,7 @@ const getUserList = async (req, res) => {
   }
 };
 
-const getUserDeatil = async (req, res) => {
+const getUser = async (req, res) => {
   /* 	#swagger.tags = ['User']
       #swagger.description = 'Get users Detail' 
       #swagger.responses[200] = {
@@ -98,10 +98,10 @@ const getUserDeatil = async (req, res) => {
       }
   */
   let code, message;
-  const _id = req.params.id;
+  const token = req.headers.authorization.split(" ")[1];
   try {
     code = 200;
-    const data = await userModel.findById({ _id });
+    const data = await userModel.findOne({ token });
     const resData = customResponse({ code, data });
     return res.status(code).send(resData);
   } catch (error) {
@@ -393,9 +393,11 @@ const logout = async (req, res) => {
     code = 200;
     let userData;
     userModel.findOne({ token: authorizationHeader }, function (err, user) {
-      user.token = undefined;
-      user.save();
-      userData = user;
+      if (user && user.token) {
+        user.token = undefined;
+        user.save();
+        userData = user;
+      }
     });
     res.clearCookie("Token", { path: "/" });
     const resData = customResponse({ code, data: userData });
@@ -454,7 +456,7 @@ const getAccount = async (req, res) => {
 };
 module.exports = {
   getUserList,
-  getUserDeatil,
+  getUser,
   addUser,
   updateUser,
   deleteUser,

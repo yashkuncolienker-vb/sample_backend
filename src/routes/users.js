@@ -4,7 +4,7 @@ var router = express.Router();
 const { isAuthorized } = require("../middleware/auth");
 const {
   getUserList,
-  getUserDeatil,
+  getUser,
   addUser,
   updateUser,
   deleteUser,
@@ -12,12 +12,12 @@ const {
   logout,
 } = require("../controllers/userController");
 
-router.post("/signup", addUser);
+router.post("/adduser", addUser);
 router.post("/login", auth);
 router.post("/logout", logout);
-
-router.get("/", isAuthorized, getUserList);
-router.get("/:id", isAuthorized, getUserDeatil);
+router.get("/", isAuthorized, getUser);
+// router.get("/", isAuthorized, getUserList);
+router.get("/", isAuthorized, getUser);
 router.put("/:id", isAuthorized, updateUser);
 router.delete("/:id", isAuthorized, deleteUser);
 //create getrewards logic
