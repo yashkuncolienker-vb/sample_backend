@@ -77,7 +77,7 @@ const getUserList = async (req, res) => {
   }
 };
 
-const getUserDeatil = async (req, res) => {
+const getUser = async (req, res) => {
   /* 	#swagger.tags = ['User']
       #swagger.description = 'Get users Detail' 
       #swagger.responses[200] = {
@@ -98,10 +98,10 @@ const getUserDeatil = async (req, res) => {
       }
   */
   let code, message;
-  const _id = req.params.id;
+  const token = req.headers.authorization.split(" ")[1];
   try {
     code = 200;
-    const data = await userModel.findById({ _id });
+    const data = await userModel.findOne({ token });
     const resData = customResponse({ code, data });
     return res.status(code).send(resData);
   } catch (error) {
@@ -158,7 +158,8 @@ const addUser = async (req, res) => {
   }
   try {
     code = 201;
-    const data = new userModel(req.body);
+    const encryptedPw = await bcrypt.hash(req.body.password, 10);
+    const data = new userModel({ ...req.body, password: encryptedPw });
     await data.save();
     const resData = customResponse({
       code,
@@ -310,7 +311,6 @@ const auth = async (req, res) => {
       }
   */
   let code, message, data;
-  console.log("Hello");
   const { error } = loginSchema.validate(req.body);
 
   if (error) {
@@ -333,9 +333,7 @@ const auth = async (req, res) => {
     };
     const secret = process.env.JWT_SECRET;
     const token = jwt.sign(payload, secret, options);
-    const reqBody = { token, ...req.body };
     const user = await userModel.findOne({ email: req.body.email }).exec();
-    const encryptedPw = await bcrypt.hash(req.body.password, 10);
     if (!user) {
       code = 404;
       message = "Invalid request data";
@@ -345,19 +343,18 @@ const auth = async (req, res) => {
       });
       return res.status(code).send(resData);
     } else {
-      const userEntry = await userModel.findOne({ email: req.body.email });
       const doesPasswordMatch = await bcrypt.compare(
         req.body.password,
-        userEntry.password
+        user.password
       );
       if (doesPasswordMatch) {
         code = 200;
+
         data = await userModel.findOneAndUpdate(
           { email: req.body.email },
-          { ...reqBody, password: encryptedPw },
+          { token },
           { new: true }
         );
-        await data.save();
       } else {
         code = 422;
         message = "Invalid request data";
@@ -368,6 +365,42 @@ const auth = async (req, res) => {
       }
     }
     const resData = customResponse({ code, data });
+    return res
+      .status(code)
+      .cookie("Token", token, {
+        sameSite: "strict",
+        path: "/",
+        expires: new Date(Date.now() + 8 * (60 * 60 * 1000)),
+        // httpOnly: true,
+      })
+      .send(resData);
+  } catch (error) {
+    code = 500;
+    message = "Internal server error";
+    const resData = customResponse({
+      code,
+      message,
+      err: error,
+    });
+    return res.status(code).send(resData);
+  }
+};
+
+const logout = async (req, res) => {
+  let code, message, data;
+  const authorizationHeader = req.headers.authorization.split(" ")[1];
+  try {
+    code = 200;
+    let userData;
+    userModel.findOne({ token: authorizationHeader }, function (err, user) {
+      if (user && user.token) {
+        user.token = undefined;
+        user.save();
+        userData = user;
+      }
+    });
+    res.clearCookie("Token", { path: "/" });
+    const resData = customResponse({ code, data: userData });
     return res.status(code).send(resData);
   } catch (error) {
     code = 500;
@@ -380,6 +413,7 @@ const auth = async (req, res) => {
     return res.status(code).send(resData);
   }
 };
+
 const getAccount = async (req, res) => {
   /* 	#swagger.tags = ['User']
       #swagger.description = 'Get Account'
@@ -422,10 +456,11 @@ const getAccount = async (req, res) => {
 };
 module.exports = {
   getUserList,
-  getUserDeatil,
+  getUser,
   addUser,
   updateUser,
   deleteUser,
   auth,
   getAccount,
+  logout,
 };
