@@ -7,97 +7,17 @@ const { customResponse, customPagination } = require("../utility/helper");
 
 const userModel = require("../models/user");
 
-const getUserList = async (req, res) => {
-  /* 	#swagger.tags = ['User']
-      #swagger.description = 'Get users list' 
-      #swagger.parameters['page'] = {
-        in: 'query',
-        type: 'integer',
-        description: 'Page number' 
-      }
-      #swagger.parameters['limit'] = {
-        in: 'query',
-        type: 'integer',
-        description: 'Data limit per page' 
-      }
-      #swagger.responses[200] = {
-        schema:{
-          "status": "success",
-          "code": 200,
-          "message": "",
-          "data": {
-            "pageCount": 1,
-            "totalCount": 1,
-            "currentPage": 1,
-            "results": [
-              {
-                "_id": "610d090636ba149966bd3b55",
-                "first_name": "Jhon",
-                "last_name": "Doe",
-                "email": "jhon@valuebound.com",
-                "role": "admin"
-              }
-            ]
-          },
-          "error": {}
-        }
-      }
-  */
-  let code, message;
-  const searchString = [{ role: { $regex: "" } }];
-
-  const page = req.query.page ? req.query.page : 1;
-  const limit = req.query.limit ? req.query.limit : 15;
-  if (req.query.first_name) {
-    searchString.push({ first_name: { $regex: req.query.first_name } });
-  }
-  if (req.query.last_name) {
-    searchString.push({ last_name: req.query.last_name });
-  }
-  if (req.query.email) {
-    searchString.push({ email: req.query.email });
-  }
-  try {
-    code = 200;
-    const users = await userModel.find({
-      $and: [{ $and: searchString }],
-    });
-    const data = customPagination({ data: users, page, limit });
-    const resData = customResponse({ code, data });
-    return res.status(code).send(resData);
-  } catch (error) {
-    code = 500;
-    message = "Internal server error";
-    const resData = customResponse({
-      code,
-      message,
-      err: error,
-    });
-    return res.status(code).send(resData);
-  }
-};
-
 const getUser = async (req, res) => {
   /* 	#swagger.tags = ['User']
       #swagger.description = 'Get users Detail' 
       #swagger.responses[200] = {
         schema:{
-          "status": "success",
-          "code": 200,
-          "message": "",
-          "data":  {
-            "_id": "610bc1b31b82a66f6bcd64ea",
-            "first_name": "akash",
-            "last_name": "kumar",
-            "email": "akash@gmail.com",
-            "role": "admin",
-            "__v": 0
-          },
-          "error": {}
+          "status":"success","code":200,"message":"","data":{"status":"active","_id":"61a7652ad4dae50710c5dd02","email":"jd@gmail.com","password":"$2b$10$CrlIF88L1c9ZK4hG/c3JLO5TTKto.ekx0SRL6EwmL9dTwOQ0xs7Nu","first_name":"john","last_name":"doe","role":"super_admin","created_at":"2021-12-01T12:06:02.055Z","updated_at":"2021-12-02T13:01:21.156Z","__v":0,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImpkQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoia3VuY29saWVua2VyIiwiaWF0IjoxNjM4NDUwMDgxLCJleHAiOjE2Mzg2MjI4ODEsImlzcyI6InZiLWVycCJ9.Gp_bmr8jl9U9hCfqd3UAwXNlS3FW4oo6961oOIf9HRM"},"error":{}
         }
       }
   */
   let code, message;
+  const authorizationHeader = req.headers.authorization;
   const token = req.headers.authorization.split(" ")[1];
   try {
     code = 200;
@@ -119,28 +39,10 @@ const getUser = async (req, res) => {
 const addUser = async (req, res) => {
   /* 	#swagger.tags = ['User']
       #swagger.description = 'Add new user'
-      #swagger.parameters['obj'] = {
-        in: 'body',
-        schema: {
-            $first_name: 'Jhon',
-            $last_name: 'Doe',
-            $email: 'jhon@valuebound.com',
-            $role: 'admin'
-        }
-      }
       #swagger.responses[201] = {
         description: 'User successfully added.',
         schema: { 
-          "status": "success",
-          "code": 201,
-          "message": "",
-          "data": {
-            "first_name": 'Jhon',
-            "last_name": 'Doe',
-            "email": 'jhon@valuebound.com',
-            "role": 'admin', 
-          },
-          "error": {}
+          "status":"success","code":201,"message":"","data":{"status":"active","_id":"61a8c83fcf8ab30ad4bfe56d","email":"qy@gmail.com","password":"$2b$10$vPgXLSCmtRFI2gvPFecFUe.hxHNUAEWLw4SxV7KQpSc6pqq84WPLy","first_name":"qwerty","last_name":"yuiop","role":"approver","created_at":"2021-12-02T13:21:03.645Z","updated_at":"2021-12-02T13:21:03.645Z","__v":0},"error":{}
         }
       }
   */
@@ -178,135 +80,20 @@ const addUser = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res) => {
-  /* 	#swagger.tags = ['User']
-      #swagger.description = 'Update user' 
-      #swagger.parameters['obj'] = {
-        in: 'body',
-        schema: {
-            $first_name: 'Jhon',
-            $last_name: 'Doe',
-            $email: 'jhon@valuebound.com',
-            $role: 'admin'
-        }
-      }
-      #swagger.responses[200] = {
-        description: 'User successfully updated.',
-        schema: { 
-          "status": "success",
-          "code": 200,
-          "message": "",
-          "data": {
-            "first_name": 'Jhon',
-            "last_name": 'Doe',
-            "email": 'jhon@valuebound.com',
-            "role": 'admin'
-          },
-          "error": {}
-        }
-      }
-  */
-  let code, message;
-  const _id = req.params.id;
-  try {
-    code = 200;
-    message = "user successfully updated!";
-    const user = await userModel.findOneAndUpdate(
-      { _id },
-      { ...req.body },
-      { new: true }
-    );
-    await user.save();
-    const resData = customResponse({
-      code,
-      data: user,
-      message,
-    });
-    return res.status(code).send(resData);
-  } catch (error) {
-    code = 500;
-    message = "Internal server error";
-    const resData = customResponse({
-      code,
-      message,
-      err: error,
-    });
-    return res.status(code).send(resData);
-  }
-};
-
-const deleteUser = async (req, res) => {
-  /* 	#swagger.tags = ['User']
-      #swagger.description = 'Delete user' 
-      #swagger.responses[200] = {
-      schema:{
-        "status": "success",
-        "code": 200,
-        "message": "User deleted successfully",
-        "data":  {
-          "_id": "610bc1b31b82a66f6bcd64ea",
-          "first_name": 'Jhon',
-          "last_name": 'Doe',
-          "email": 'jhon@valuebound.com',
-          "role": 'admin',
-          "__v": 0
-        },
-        "error": {}
-      }
-    }
-  */
-  let code, message;
-  const _id = req.params.id;
-  const isValid = mongoose.Types.ObjectId.isValid(_id);
-  if (!isValid) {
-    code = 422;
-    message = "Invalid objectId id";
-    const resData = customResponse({ code, message });
-    return res.status(code).send(resData);
-  }
-  try {
-    code = 200;
-    const user = await userModel.findByIdAndDelete({ _id });
-    message = "user successfully deleted!";
-    const resData = customResponse({
-      code,
-      data: user,
-      message,
-    });
-    return res.status(code).send(resData);
-  } catch (error) {
-    code = 500;
-    message = "Internal server error";
-    const resData = customResponse({
-      code,
-      message,
-      err: error,
-    });
-    return res.status(code).send(resData);
-  }
-};
 const auth = async (req, res) => {
   /* 	#swagger.tags = ['User']
-      #swagger.description = 'Add new user'
+      #swagger.description = 'Login User'
       #swagger.parameters['obj'] = {
         in: 'body',
         schema: {
-            $first_name: 'Jhon',
-            $last_name: 'Doe',
-            $email: 'jhon@valuebound.com',
-            $role: 'admin'
+            $email: 'qy@gmail.com',
+            $password: 'qazxswedc'
         }
       }
       #swagger.responses[201] = {
         description: 'User successfully added.',
         schema: { 
-          "status": "success",
-          "code": 201,
-          "message": "",
-          "data": { 
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiSmhvbiBEb2UiLCJpYXQiOjE2Mjg0OTQ5NzksImV4cCI6MTYyODY2Nzc3OSwiaXNzIjoidmItY21zIn0.wdyX_wXWABr1BIw_7FzZKgowhixX8EXVN4ZojvzsaIU",
-          },
-          "error": {}
+          "status":"success","code":201,"message":"","data":{"status":"active","_id":"61a8c83fcf8ab30ad4bfe56d","email":"qy@gmail.com","password":"$2b$10$vPgXLSCmtRFI2gvPFecFUe.hxHNUAEWLw4SxV7KQpSc6pqq84WPLy","first_name":"qwerty","last_name":"yuiop","role":"approver","created_at":"2021-12-02T13:21:03.645Z","updated_at":"2021-12-02T13:21:03.645Z","__v":0},"error":{}
         }
       }
   */
@@ -387,6 +174,13 @@ const auth = async (req, res) => {
 };
 
 const logout = async (req, res) => {
+  /* 	#swagger.tags = ['User']
+      #swagger.description = 'Logout User'
+      #swagger.responses[201] = {
+        description: 'User successfully added.',
+        schema: {"status":"success","code":200,"message":"","data":{},"error":{}}
+      }
+  */
   let code, message, data;
   const authorizationHeader = req.headers.authorization.split(" ")[1];
   try {
@@ -414,53 +208,9 @@ const logout = async (req, res) => {
   }
 };
 
-const getAccount = async (req, res) => {
-  /* 	#swagger.tags = ['User']
-      #swagger.description = 'Get Account'
-      #swagger.responses[201] = {
-        description: 'User successfully added.',
-        schema: { 
-          "status": "success",
-          "code": 200,
-          "message": "",
-          "data": { 
-            "first_name": 'Jhon',
-            "last_name": 'Doe',
-            "email": 'jhon@valuebound.com',
-            "role": 'admin', 
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiSmhvbiBEb2UiLCJpYXQiOjE2Mjg0OTQ5NzksImV4cCI6MTYyODY2Nzc3OSwiaXNzIjoidmItY21zIn0.wdyX_wXWABr1BIw_7FzZKgowhixX8EXVN4ZojvzsaIU",
-          },
-          "error": {}
-        }
-      }
-  */
-  let code, message, data;
-  const authorizationHeaader = req.headers.authorization.split(" ")[1];
-  try {
-    code = 200;
-    const user = await userModel
-      .findOne({ token: authorizationHeaader })
-      .exec();
-    const resData = customResponse({ code, data: user });
-    return res.status(code).send(resData);
-  } catch (error) {
-    code = 500;
-    message = "Internal server error";
-    const resData = customResponse({
-      code,
-      message,
-      err: error,
-    });
-    return res.status(code).send(resData);
-  }
-};
 module.exports = {
-  getUserList,
   getUser,
   addUser,
-  updateUser,
-  deleteUser,
   auth,
-  getAccount,
   logout,
 };

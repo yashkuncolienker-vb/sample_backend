@@ -7,7 +7,7 @@ const doc = {
     title: process.env.APP_NAME,
     description: process.env.APP_INFO,
   },
-  host: "localhost:3000",
+  host: "localhost:4000",
   basePath: "/",
   schemes: ["http", "https"],
   consumes: ["application/json"],
